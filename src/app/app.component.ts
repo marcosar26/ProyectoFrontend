@@ -1,12 +1,15 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+// src/app/app.component.ts
+import {Component} from '@angular/core';
+import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  standalone: true, // Es standalone
+  imports: [RouterOutlet, RouterLink, RouterLinkActive], // Importaciones necesarias
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css' // O styleUrls si tienes varios
 })
 export class AppComponent {
-  title = 'proyecto';
+  title = 'proyecto'; // Puedes mantener o cambiar esto
+  currentYear = new Date().getFullYear();
 }
