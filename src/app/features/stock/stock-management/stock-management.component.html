@@ -1,12 +1,19 @@
 <div class="stock-container">
   <h2>Gestión de Stock de Productos</h2>
 
-  <button (click)="toggleForm()" class="btn btn-primary mb-3">
-    {{ showForm && !isEditing ? 'Cancelar' : (showForm && isEditing ? 'Cancelar Edición' : 'Añadir Producto') }}
-  </button>
+  <!-- Botón para Añadir Producto (solo admins) o Cancelar si el formulario está abierto (solo admins) -->
+  <ng-container *ngIf="canPerformWriteActions">
+    <button *ngIf="!showForm" (click)="openNewProductForm()" class="btn btn-primary mb-3">
+      <i class="fas fa-plus"></i> Añadir Producto
+    </button>
+    <!-- Botón para Cancelar la acción actual si el formulario está visible -->
+    <button *ngIf="showForm" (click)="cancelAndCloseForm()" class="btn btn-secondary mb-3">
+      {{ isEditing ? 'Cancelar Edición' : 'Cancelar Nuevo Producto' }}
+    </button>
+  </ng-container>
 
-  <!-- Formulario para Crear/Actualizar Productos -->
-  <div *ngIf="showForm" class="product-form card mb-4">
+  <!-- Formulario para Crear/Actualizar Productos (solo visible para admins y cuando showForm es true) -->
+  <div *ngIf="showForm && canPerformWriteActions" class="product-form card mb-4">
     <div class="card-body">
       <h3 class="card-title">{{ isEditing ? 'Editar Producto' : 'Añadir Nuevo Producto' }}</h3>
       <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
@@ -54,7 +61,7 @@
         <button type="submit" class="btn btn-success me-2" [disabled]="productForm.invalid">
           {{ isEditing ? 'Actualizar Producto' : 'Guardar Producto' }}
         </button>
-        <button type="button" (click)="cancelEdit()" class="btn btn-secondary">Cancelar</button>
+        <button type="button" (click)="cancelAndCloseForm()" class="btn btn-secondary">Cancelar</button>
       </form>
     </div>
   </div>
@@ -72,7 +79,7 @@
           <th>Descripción</th>
           <th>Precio</th>
           <th>Stock</th>
-          <th>Acciones</th>
+          <th *ngIf="canPerformWriteActions">Acciones</th> <!-- La columna Acciones solo para admins -->
         </tr>
         </thead>
         <tbody>
@@ -85,8 +92,8 @@
           <td>{{ product.description || '-' }}</td>
           <td>{{ product.price | currency:'USD':'symbol':'1.2-2' }}</td>
           <td>{{ product.stock }}</td>
-          <td>
-            <button (click)="toggleForm(product)" class="btn btn-sm btn-warning me-2">
+          <td *ngIf="canPerformWriteActions"> <!-- Los botones de acción solo para admins -->
+            <button (click)="openEditProductForm(product)" class="btn btn-sm btn-warning me-2">
               <i class="fas fa-edit"></i> Editar
             </button>
             <button (click)="deleteProduct(product.id)" class="btn btn-sm btn-danger">

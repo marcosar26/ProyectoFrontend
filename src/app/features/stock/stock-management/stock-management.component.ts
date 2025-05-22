@@ -6,7 +6,7 @@ import {Observable, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 
 import {Product} from '../../../shared/models/product.model';
-import {User} from '../../../shared/models/user.model'; // Importar User
+import {User} from '../../../shared/models/user.model';
 import {ProductService} from '../services/product.service';
 import {AuthService} from '../../../core/auth/auth.service';
 
@@ -24,7 +24,7 @@ export class StockManagementComponent implements OnInit, OnDestroy {
   currentProductId: string | number | null = null;
   showForm = false;
 
-  userRole: User['role'] | null; // Usar User['role']
+  userRole: User['role'] | null;
   canPerformWriteActions = false;
 
   private destroy$ = new Subject<void>();
@@ -35,11 +35,11 @@ export class StockManagementComponent implements OnInit, OnDestroy {
     private authService: AuthService
   ) {
     this.userRole = this.authService.userRole;
-    // El método hasRole ya está adaptado en AuthService
     this.canPerformWriteActions = this.authService.hasRole('admin');
 
     this.products$ = this.productService.getProducts();
 
+    // Los campos del formulario se deshabilitan si el usuario no es admin
     this.productForm = this.fb.group({
       name: [{value: '', disabled: !this.canPerformWriteActions}, Validators.required],
       description: [{value: '', disabled: !this.canPerformWriteActions}],
@@ -58,30 +58,35 @@ export class StockManagementComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  toggleForm(product?: Product): void {
-    if (!this.canPerformWriteActions && (product || !this.showForm)) {
+  // Método para mostrar el formulario para un nuevo producto
+  openNewProductForm(): void {
+    if (!this.canPerformWriteActions) {
+      console.warn('Acción no permitida: Usuario no tiene permisos para añadir productos.');
       return;
     }
-    this.showForm = !this.showForm;
-
-    if (this.showForm && product && this.canPerformWriteActions) {
-      this.editProduct(product);
-    } else if (!this.showForm) {
-      this.cancelEdit();
-    }
+    this.isEditing = false;
+    this.currentProductId = null;
+    this.productForm.reset(); // Limpia el formulario y sus estados de validación
+    this.showForm = true;
   }
 
-  editProduct(product: Product): void {
-    if (!this.canPerformWriteActions) return;
-
+  // Método para mostrar el formulario para editar un producto existente
+  openEditProductForm(product: Product): void {
+    if (!this.canPerformWriteActions) {
+      console.warn('Acción no permitida: Usuario no tiene permisos para editar productos.');
+      return;
+    }
     this.isEditing = true;
-    this.showForm = true;
     this.currentProductId = product.id;
     this.productForm.patchValue(product);
+    this.showForm = true;
   }
 
   deleteProduct(id: string | number): void {
-    if (!this.canPerformWriteActions) return;
+    if (!this.canPerformWriteActions) {
+      console.warn('Acción no permitida: Usuario no tiene permisos para eliminar productos.');
+      return;
+    }
 
     if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
       this.productService.deleteProduct(id)
@@ -90,11 +95,11 @@ export class StockManagementComponent implements OnInit, OnDestroy {
           next: (success) => {
             if (success) {
               console.log('Producto eliminado');
-              if (this.currentProductId === id) {
-                this.cancelEdit();
+              if (this.currentProductId === id) { // Si se elimina el producto que se estaba editando
+                this.cancelAndCloseForm();
               }
             } else {
-              console.error('Error al eliminar producto');
+              console.error('Error al eliminar producto: El servicio indicó fallo.');
             }
           },
           error: (err) => console.error('Error en la suscripción de eliminación:', err)
@@ -103,14 +108,19 @@ export class StockManagementComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    if (!this.canPerformWriteActions) return;
+    if (!this.canPerformWriteActions) {
+      console.warn('Acción no permitida: Usuario no tiene permisos para guardar productos.');
+      return;
+    }
 
     if (this.productForm.invalid) {
       this.productForm.markAllAsTouched();
       return;
     }
 
-    const productData = this.productForm.value;
+    // Usamos getRawValue() por si los campos estuvieran deshabilitados por alguna razón no prevista
+    // aunque la lógica de `disabled` en la creación del form y las guardias deberían prevenirlo.
+    const productData = this.productForm.getRawValue();
 
     if (this.isEditing && this.currentProductId !== null) {
       this.productService.updateProduct({...productData, id: this.currentProductId})
@@ -118,7 +128,7 @@ export class StockManagementComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (updatedProduct) => {
             console.log('Producto actualizado:', updatedProduct);
-            this.cancelEdit();
+            this.cancelAndCloseForm();
           },
           error: (err) => console.error('Error al actualizar producto:', err)
         });
@@ -128,14 +138,15 @@ export class StockManagementComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (newProduct) => {
             console.log('Producto añadido:', newProduct);
-            this.cancelEdit();
+            this.cancelAndCloseForm();
           },
           error: (err) => console.error('Error al añadir producto:', err)
         });
     }
   }
 
-  cancelEdit(): void {
+  // Método para cancelar la edición/creación y ocultar el formulario
+  cancelAndCloseForm(): void {
     this.isEditing = false;
     this.currentProductId = null;
     this.showForm = false;
