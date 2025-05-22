@@ -1,141 +1,72 @@
 /* src/app/features/stock/stock-management/stock-management.component.css */
 .stock-container {
-  padding: 20px;
-  max-width: 1000px;
-  margin: auto;
+  /* El max-width ya lo maneja la clase .container de Bootstrap si la usas en el HTML */
+  /* padding: 20px; ya lo maneja la clase .container de Bootstrap si la usas en el HTML */
 }
 
-.product-form {
-  background-color: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
+.page-header h2 {
+  font-weight: 300; /* Un título un poco más ligero */
 }
 
-.product-image {
-  width: 50px;
-  height: 50px;
+.product-image-thumbnail {
+  width: 60px;
+  height: 60px;
   object-fit: cover;
-  border-radius: 4px;
 }
 
-.table th, .table td {
-  vertical-align: middle;
-}
+/*
+Las siguientes reglas pueden ser eliminadas o ajustadas,
+Bootstrap debería manejarlas o las hemos especificado en el HTML.
+*/
 
-.btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
-}
+/* .product-form { ... }  Eliminar si usas card de Bootstrap */
+/* .product-image { ... } Reemplazado por product-image-thumbnail y img-thumbnail */
 
-.btn-primary:hover {
-  background-color: #0056b3;
-  border-color: #0056b3;
-}
+/* .table th, .table td {
+  vertical-align: middle; /* Bootstrap ya lo hace con table y align-middle en la tabla */
+/*}*/
 
-.btn-warning {
-  color: #fff; /* Para mejor contraste con el amarillo */
-}
+/* .btn-primary, .btn-primary:hover ... Eliminar, Bootstrap maneja esto. */
 
-.btn-danger {
-  color: #fff; /* Para mejor contraste con el rojo */
-}
-
-/* Añadir un poco de margen a los botones de acción de la tabla */
-.table .btn {
-  margin-right: 5px;
-}
-
-.table .btn:last-child {
-  margin-right: 0;
-}
-
-/* Estilos para feedback de validación */
-.form-control.is-invalid {
-  border-color: #dc3545;
-}
-
-.invalid-feedback {
-  display: block; /* Asegura que se muestre el mensaje */
-  width: 100%;
-  margin-top: .25rem;
-  font-size: .875em;
-  color: #dc3545;
-}
-
-.mb-3 {
-  margin-bottom: 1rem !important;
-}
-
-.me-2 {
-  margin-right: .5rem !important;
-}
-
-.card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  word-wrap: break-word;
-  background-color: #fff;
-  background-clip: border-box;
-  border: 1px solid rgba(0, 0, 0, .125);
-  border-radius: .25rem;
-}
-
-.card-body {
-  flex: 1 1 auto;
-  padding: 1rem 1rem;
-}
-
-.card-title {
-  margin-bottom: .5rem;
-}
-
-.table-responsive {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.table {
-  width: 100%;
-  margin-bottom: 1rem;
+/*
+  Si los iconos dentro de btn-warning (amarillo) no se ven bien,
+  Bootstrap usualmente usa texto oscuro. Si tu tema lo cambia, podrías necesitar:
+*/
+/*
+.btn-warning .fas,
+.btn-warning .far,
+.btn-warning .fab {
   color: #212529;
-  vertical-align: top;
-  border-color: #dee2e6;
+}
+*/
+
+/*
+  .btn-danger ya debería tener texto blanco por Bootstrap.
+  .btn-danger { color: #fff; } Eliminar si Bootstrap lo hace.
+*/
+
+/* Los márgenes entre botones de acción en la tabla se manejan con .me-2 en el HTML */
+/* .table .btn { margin-right: 5px; } */
+/* .table .btn:last-child { margin-right: 0; } */
+
+
+/* Estilos para feedback de validación (Bootstrap ya los tiene, pero asegúrate que funcionen) */
+.invalid-feedback.d-block { /* Específico para input-group */
+  display: block !important; /* Asegurar que se muestre */
 }
 
-.table > :not(caption) > * > * {
-  padding: .5rem .5rem;
-  background-color: var(--bs-table-bg);
-  border-bottom-width: 1px;
-  box-shadow: inset 0 0 0 9999px var(--bs-table-accent-bg);
+/* Para los botones de acción si necesitan un ajuste fino con btn-sm */
+.action-buttons .btn-sm {
+  /* Bootstrap btn-sm: padding: 0.25rem 0.5rem; font-size: .875rem; */
+  /* Si el icono sigue cortado, podemos reducir el padding o asegurar line-height */
+  padding: 0.2rem 0.45rem; /* Un poco menos padding que el btn-sm default */
+  line-height: 1.2; /* Ajustar para centrar el icono si es necesario */
 }
 
-.table > thead {
-  vertical-align: bottom;
+.action-buttons .btn-sm .fas {
+  font-size: 0.8em; /* Hacer el icono un poco más pequeño si es btn-sm */
+  vertical-align: -0.05em; /* Pequeño ajuste vertical si es necesario */
 }
 
-.table-striped > tbody > tr:nth-of-type(odd) > * {
-  --bs-table-accent-bg: var(--bs-table-striped-bg);
-  color: var(--bs-table-striped-color);
-}
-
-.table-hover > tbody > tr:hover > * {
-  --bs-table-accent-bg: var(--bs-table-hover-bg);
-  color: var(--bs-table-hover-color);
-}
-
-:root {
-  --bs-table-bg: transparent;
-  --bs-table-accent-bg: transparent;
-  --bs-table-striped-color: #212529;
-  --bs-table-striped-bg: rgba(0, 0, 0, 0.05);
-  --bs-table-active-color: #212529;
-  --bs-table-active-bg: rgba(0, 0, 0, 0.1);
-  --bs-table-hover-color: #212529;
-  --bs-table-hover-bg: rgba(0, 0, 0, 0.075);
-}
-
-/* Para iconos de Font Awesome si los usas */
-/* @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'); */
+/* :root { ... } Estas son variables de Bootstrap, no necesitas redefinirlas aquí
+   a menos que estés creando un tema personalizado completo. Eliminar. */
