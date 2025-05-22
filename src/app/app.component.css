@@ -71,3 +71,17 @@
   border-top: 1px solid #dee2e6; /* Una línea sutil de separación */
   margin-top: auto; /* Empuja el footer hacia abajo */
 }
+
+.main-nav ul li a.logout-link {
+  color: #ffc107; /* Un color ámbar/amarillo para destacar */
+  /* O puedes hacerlo parecer más un botón si quieres */
+  /* background-color: #dc3545; */
+  /* color: white; */
+  /* padding: 8px 12px; */
+  /* border-radius: 4px; */
+}
+
+.main-nav ul li a.logout-link:hover {
+  color: #ffca2c; /* Un poco más brillante al pasar el mouse */
+  /* background-color: #c82333; */ /* Si es un botón */
+}

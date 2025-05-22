@@ -5,12 +5,22 @@
       <a routerLink="/">MiGestorStock</a>
     </div>
     <ul>
-      <li><a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">Inicio</a></li>
-      <li><a routerLink="/stock" routerLinkActive="active-link">Gestión de Stock</a></li>
-      <!-- NUEVO ENLACE - Mostrar solo si es admin -->
-      <li *ngIf="authService.hasRole('admin')">
-        <a routerLink="/admin/users" routerLinkActive="active-link">Gestión de Usuarios</a>
-      </li>
+      <!-- Mostrar estos enlaces siempre o según isAuthenticated$ -->
+      <ng-container *ngIf="authService.isAuthenticated$ | async">
+        <li><a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">Inicio</a></li>
+        <li><a routerLink="/stock" routerLinkActive="active-link">Gestión de Stock</a></li>
+        <li *ngIf="authService.hasRole('admin')">
+          <a routerLink="/admin/users" routerLinkActive="active-link">Gestión de Usuarios</a>
+        </li>
+        <li>
+          <!-- Botón/Enlace para Cerrar Sesión -->
+          <a href="#" (click)="logout($event)" class="logout-link">Cerrar Sesión</a>
+        </li>
+      </ng-container>
+      <!-- Mostrar enlace de Login si NO está autenticado -->
+      <ng-container *ngIf="!(authService.isAuthenticated$ | async)">
+        <li><a routerLink="/login" routerLinkActive="active-link">Iniciar Sesión</a></li>
+      </ng-container>
     </ul>
   </nav>
 </header>
