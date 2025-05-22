@@ -36,6 +36,14 @@ export const routes: Routes = [
         data: {expectedRoles: ['admin', 'manager'] as User['role'][]}, // Admin y Manager pueden ver el historial
         title: 'Historial de Movimientos de Stock'
       },
+      { // <--- NUEVA RUTA PARA DASHBOARD
+        path: 'dashboard',
+        loadComponent: () =>
+          import('./features/dashboard/dashboard-view/dashboard-view.component').then(m => m.DashboardViewComponent),
+        canActivate: [authGuard, roleGuard], // Proteger el dashboard
+        data: {expectedRoles: ['admin', 'manager'] as User['role'][]}, // Solo Admin y Manager
+        title: 'Dashboard de Inventario'
+      },
       { // Ruta para gestión de usuarios
         path: 'admin/users',
         loadComponent: () =>

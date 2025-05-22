@@ -1,0 +1,118 @@
+<div class="container mt-4 dashboard-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Dashboard de Inventario</h2>
+    <!-- Podrías añadir un selector de rango de fechas aquí en el futuro -->
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando dashboard...</span>
+    </div>
+    <p class="mt-2">Cargando dashboard...</p>
+  </div>
+
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-danger" role="alert">
+    {{ errorMessage }}
+  </div>
+
+  <ng-container *ngIf="!isLoading && !errorMessage">
+    <!-- Fila para KPIs -->
+    <div class="row mb-4 g-3">
+      <div class="col-md-6 col-lg-4">
+        <div class="card text-white bg-primary shadow h-100">
+          <div class="card-body text-center">
+            <h5 class="card-title">Total de Productos</h5>
+            <p class="card-text display-4 fw-bold">{{ productStats?.totalProducts || 0 }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card text-dark bg-warning shadow h-100">
+          <div class="card-body text-center">
+            <h5 class="card-title">Productos con Bajo Stock (<10)</h5>
+            <p class="card-text display-4 fw-bold">{{ productStats?.lowStockProducts || 0 }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-12 col-lg-4">
+        <div class="card text-white bg-info shadow h-100">
+          <div class="card-body">
+            <h5 class="card-title text-center">Entradas vs Salidas (Última Semana)</h5>
+            <div class="d-flex justify-content-around mt-2">
+              <div class="text-center">
+                <p class="mb-0 fs-5">Entradas</p>
+                <p class="fw-bold display-6">{{ movementSummary?.totalEntradas || 0 }}</p>
+              </div>
+              <div class="text-center">
+                <p class="mb-0 fs-5">Salidas</p>
+                <p class="fw-bold display-6">{{ movementSummary?.totalSalidas || 0 }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fila para Gráficos -->
+    <div class="row g-3">
+      <div class="col-lg-6 mb-4">
+        <div class="card shadow h-100">
+          <div class="card-header">
+            Movimientos de Stock por Tipo (Últimos 30 días)
+          </div>
+          <div class="card-body chart-container">
+            <div *ngIf="movementTypeStats.length > 0; else noMovementDataPie" class="chart-wrapper">
+              <ngx-charts-pie-chart
+                [scheme]="colorScheme"
+                [results]="movementTypeStats"
+                [gradient]="pieChartOptions.gradient"
+                [legend]="pieChartOptions.showLegend"
+                [legendTitle]="pieChartOptions.legendTitle"
+                [legendPosition]="pieChartOptions.legendPosition"
+                [labels]="pieChartOptions.labels"
+                [doughnut]="pieChartOptions.doughnut"
+                (select)="onSelect($event)">
+              </ngx-charts-pie-chart>
+            </div>
+            <ng-template #noMovementDataPie>
+              <div class="d-flex align-items-center justify-content-center h-100">
+                <p class="text-muted">No hay datos de movimientos para mostrar.</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 mb-4">
+        <div class="card shadow h-100">
+          <div class="card-header">
+            Resumen de Movimientos por Tipo
+          </div>
+          <div class="card-body chart-container">
+            <div *ngIf="movementTypeStats.length > 0; else noMovementDataBar" class="chart-wrapper">
+              <ngx-charts-bar-vertical
+                [scheme]="colorScheme"
+                [results]="movementTypeStats"
+                [xAxis]="showXAxis"
+                [yAxis]="showYAxis"
+                [legend]="false"
+                [showXAxisLabel]="showXAxisLabel"
+                [showYAxisLabel]="showYAxisLabel"
+                [xAxisLabel]="xAxisLabel"
+                [yAxisLabel]="yAxisLabel"
+                [barPadding]="8"
+                [roundDomains]="true"
+                (select)="onSelect($event)">
+              </ngx-charts-bar-vertical>
+            </div>
+            <ng-template #noMovementDataBar>
+              <div class="d-flex align-items-center justify-content-center h-100">
+                <p class="text-muted">No hay datos de movimientos para mostrar.</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>
