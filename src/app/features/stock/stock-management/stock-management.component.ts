@@ -9,11 +9,12 @@ import {Product} from '../../../shared/models/product.model';
 import {User} from '../../../shared/models/user.model';
 import {ProductService} from '../services/product.service';
 import {AuthService} from '../../../core/auth/auth.service';
+import {RouterLink} from '@angular/router';
 
 @Component({
   selector: 'app-stock-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './stock-management.component.html',
   styleUrls: ['./stock-management.component.css']
 })

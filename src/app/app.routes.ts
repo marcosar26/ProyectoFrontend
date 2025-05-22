@@ -20,15 +20,23 @@ export const routes: Routes = [
         component: HomeComponent,
         title: 'Página Principal - Gestor de Stock'
       },
-      {
+      { // Ruta para la gestión de stock
         path: 'stock',
         loadComponent: () =>
           import('./features/stock/stock-management/stock-management.component').then(m => m.StockManagementComponent),
-        canActivate: [roleGuard], // Ya estaba, verifica que los roles sean correctos
-        data: {expectedRoles: ['admin', 'manager', 'user'] as User['role'][]}, // 'user' solo puede listar
+        canActivate: [roleGuard],
+        data: {expectedRoles: ['admin', 'manager', 'user'] as User['role'][]},
         title: 'Gestión de Stock'
       },
-      { // <--- NUEVA RUTA PARA GESTIÓN DE USUARIOS
+      { // <--- NUEVA RUTA PARA HISTORIAL DE MOVIMIENTOS
+        path: 'stock-movements',
+        loadComponent: () =>
+          import('./features/stock/stock-movements-history/stock-movements-history.component').then(m => m.StockMovementsHistoryComponent),
+        canActivate: [roleGuard],
+        data: {expectedRoles: ['admin', 'manager'] as User['role'][]}, // Admin y Manager pueden ver el historial
+        title: 'Historial de Movimientos de Stock'
+      },
+      { // Ruta para gestión de usuarios
         path: 'admin/users',
         loadComponent: () =>
           import('./features/admin/user-management/user-management.component').then(m => m.UserManagementComponent),
