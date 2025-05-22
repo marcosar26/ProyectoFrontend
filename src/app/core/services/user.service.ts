@@ -1,105 +1,156 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable, of, throwError} from 'rxjs';
-import {delay} from 'rxjs/operators';
-import {User} from '../../shared/models/user.model';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {BehaviorSubject, Observable, throwError} from 'rxjs';
+import {catchError, map, tap} from 'rxjs/operators';
+import {User} from '../../shared/models/user.model'; // Modelo del frontend
+import {environment} from '../../../environments/environment';
 
-// Simulación de base de datos de usuarios en memoria
-let MOCK_DB_USERS: User[] = [
-  {id: '0', username: 'admin', role: 'admin', name: 'Administrador Principal', password: 'admin'},
-  {id: '1', username: 'manager', role: 'manager', name: 'Gerente de Tienda', password: 'manager'},
-  {id: '2', username: 'user', role: 'user', name: 'Usuario Estándar', password: 'user'},
-  {id: '3', username: 'another_user', role: 'user', name: 'Otro Usuario', password: 'password'},
-];
+// DTOs que coinciden con los del backend para requests/responses específicas
+interface UserResponseDTO { // Lo que esperamos del backend al listar/obtener
+  id: number; // Asumimos Long se mapea a number
+  username: string;
+  role: 'ADMIN' | 'MANAGER' | 'USER'; // El enum del backend es en MAYÚSCULAS
+  name?: string;
+}
+
+interface UserRequestDTO { // Lo que enviamos al backend para crear/actualizar
+  username: string;
+  password?: string; // Opcional en actualización
+  role: 'ADMIN' | 'MANAGER' | 'USER';
+  name?: string;
+}
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
+  private apiUrl = `${environment.apiUrl}/users`;
+
   private usersSubject = new BehaviorSubject<User[]>([]);
   public users$: Observable<User[]> = this.usersSubject.asObservable();
 
-  constructor() {
-    // Clonar para evitar modificar directamente MOCK_DB_USERS desde fuera
-    this.usersSubject.next([...MOCK_DB_USERS].map(u => {
-      const {password, ...userWithoutPassword} = u; // No exponer contraseñas
-      return userWithoutPassword as User;
-    }));
+  constructor(private http: HttpClient) {
+    // Podrías cargar usuarios aquí si siempre se necesitan al iniciar,
+    // o dejar que el UserManagementComponent los cargue.
+    // Por ahora, UserManagementComponent lo hará.
   }
 
-  private generateId(): string {
-    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  private mapBackendUserToFrontendUser(dto: UserResponseDTO): User {
+    // Mapear rol de MAYÚSCULAS (backend) a minúsculas (frontend model)
+    let roleFrontend: 'admin' | 'manager' | 'user';
+    switch (dto.role) {
+      case 'ADMIN':
+        roleFrontend = 'admin';
+        break;
+      case 'MANAGER':
+        roleFrontend = 'manager';
+        break;
+      case 'USER':
+        roleFrontend = 'user';
+        break;
+      default:
+        roleFrontend = 'user'; // o lanzar un error
+    }
+    return {
+      id: dto.id,
+      username: dto.username,
+      role: roleFrontend,
+      name: dto.name
+      // la contraseña no viene del backend en UserResponseDTO
+    };
   }
 
   getUsers(): Observable<User[]> {
-    // Simular retardo de API
-    return of([...MOCK_DB_USERS].map(u => {
-      const {password, ...userWithoutPassword} = u;
-      return userWithoutPassword as User;
-    })).pipe(delay(300));
+    return this.http.get<UserResponseDTO[]>(this.apiUrl).pipe(
+      map(dtos => dtos.map(this.mapBackendUserToFrontendUser)),
+      tap(users => this.usersSubject.next(users)),
+      catchError(this.handleError)
+    );
   }
 
-  getUserById(id: string | number): Observable<User | undefined> {
-    const user = MOCK_DB_USERS.find(u => u.id === id);
-    if (user) {
-      const {password, ...userWithoutPassword} = user;
-      return of(userWithoutPassword as User).pipe(delay(100));
-    }
-    return of(undefined).pipe(delay(100));
+  getUserById(id: number | string): Observable<User | undefined> {
+    return this.http.get<UserResponseDTO>(`${this.apiUrl}/${id}`).pipe(
+      map(this.mapBackendUserToFrontendUser),
+      catchError(this.handleError)
+    );
   }
 
-  // Al crear un usuario, la contraseña es necesaria
-  createUser(userData: Omit<User, 'id'> & { passwordInput: string }): Observable<User> {
-    if (MOCK_DB_USERS.some(u => u.username === userData.username)) {
-      return throwError(() => new Error('El nombre de usuario ya existe.'));
-    }
-    const newUser: User = {
-      ...userData,
-      id: this.generateId(),
-      password: userData.passwordInput // En un backend real, esto se haría hash
-    };
-    MOCK_DB_USERS.push(newUser);
-    this.refreshUsersList();
-    const {password, ...userToReturn} = newUser;
-    return of(userToReturn as User).pipe(delay(300));
-  }
-
-  // Para actualizar, la contraseña es opcional (si se quiere cambiar)
-  updateUser(userId: string | number, userData: Partial<Omit<User, 'id' | 'password'>> & {
-    passwordInput?: string
+  // userData viene del formulario, la contraseña ya es 'passwordInput'
+  createUser(userData: {
+    username: string;
+    passwordInput: string;
+    role: User['role'];
+    name?: string;
   }): Observable<User> {
-    const index = MOCK_DB_USERS.findIndex(u => u.id === userId);
-    if (index > -1) {
-      // No permitir cambiar el nombre de usuario si ya existe (excepto para el usuario actual)
-      if (userData.username && userData.username !== MOCK_DB_USERS[index].username && MOCK_DB_USERS.some(u => u.username === userData.username)) {
-        return throwError(() => new Error('El nuevo nombre de usuario ya está en uso por otro usuario.'));
-      }
-
-      const updatedUser = {...MOCK_DB_USERS[index], ...userData};
-      if (userData.passwordInput) {
-        updatedUser.password = userData.passwordInput; // Actualizar contraseña
-      }
-      MOCK_DB_USERS[index] = updatedUser;
-      this.refreshUsersList();
-      const {password, ...userToReturn} = updatedUser;
-      return of(userToReturn as User).pipe(delay(300));
-    }
-    return throwError(() => new Error('Usuario no encontrado para actualizar.')).pipe(delay(300));
+    const requestPayload: UserRequestDTO = {
+      username: userData.username,
+      password: userData.passwordInput, // El backend espera 'password'
+      role: userData.role.toUpperCase() as 'ADMIN' | 'MANAGER' | 'USER', // Enviar rol en MAYÚSCULAS
+      name: userData.name
+    };
+    return this.http.post<UserResponseDTO>(this.apiUrl, requestPayload).pipe(
+      map(this.mapBackendUserToFrontendUser),
+      tap(newUser => {
+        const currentUsers = this.usersSubject.value;
+        this.usersSubject.next([...currentUsers, newUser]);
+      }),
+      catchError(this.handleError)
+    );
   }
 
-  deleteUser(userId: string | number): Observable<boolean> {
-    const initialLength = MOCK_DB_USERS.length;
-    MOCK_DB_USERS = MOCK_DB_USERS.filter(u => u.id !== userId);
-    if (MOCK_DB_USERS.length < initialLength) {
-      this.refreshUsersList();
-      return of(true).pipe(delay(300));
-    }
-    return of(false).pipe(delay(300)); // O throwError
+  updateUser(userId: number | string, userData: {
+    username?: string;
+    passwordInput?: string;
+    role?: User['role'];
+    name?: string;
+  }): Observable<User> {
+    const requestPayload: Partial<UserRequestDTO> = {};
+    if (userData.username) requestPayload.username = userData.username;
+    if (userData.passwordInput) requestPayload.password = userData.passwordInput;
+    if (userData.role) requestPayload.role = userData.role.toUpperCase() as 'ADMIN' | 'MANAGER' | 'USER';
+    if (userData.name !== undefined) requestPayload.name = userData.name; // permitir enviar ""
+
+    return this.http.put<UserResponseDTO>(`${this.apiUrl}/${userId}`, requestPayload).pipe(
+      map(this.mapBackendUserToFrontendUser),
+      tap(updatedUser => {
+        const currentUsers = this.usersSubject.value;
+        const index = currentUsers.findIndex(u => u.id === updatedUser.id);
+        if (index > -1) {
+          currentUsers[index] = updatedUser;
+          this.usersSubject.next([...currentUsers]);
+        }
+      }),
+      catchError(this.handleError)
+    );
   }
 
-  private refreshUsersList(): void {
-    this.usersSubject.next([...MOCK_DB_USERS].map(u => {
-      const {password, ...userWithoutPassword} = u;
-      return userWithoutPassword as User;
-    }));
+  deleteUser(userId: number | string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${userId}`).pipe(
+      tap(() => {
+        const currentUsers = this.usersSubject.value;
+        this.usersSubject.next(currentUsers.filter(u => u.id !== userId));
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(error: HttpErrorResponse) {
+    console.error('API Error:', error);
+    let errorMessage = 'Ocurrió un error desconocido con la gestión de usuarios.';
+    if (error.error instanceof ErrorEvent) {
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      if (error.status === 0) {
+        errorMessage = 'No se pudo conectar con el servidor para usuarios. Verifique su conexión o el estado del backend.';
+      } else if (typeof error.error === 'string' && error.error.length < 200) { // Si es un string de error del backend
+        errorMessage = error.error;
+      } else if (error.error && error.error.message) {
+        errorMessage = `Error ${error.status}: ${error.error.message}`;
+      } else {
+        errorMessage = `Error del servidor al gestionar usuarios: ${error.status}, ${error.message || 'Error no especificado.'}`;
+      }
+    }
+    return throwError(() => new Error(errorMessage));
   }
 }

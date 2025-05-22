@@ -1,85 +1,118 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable, of, throwError} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {Product} from '../../../shared/models/product.model'; // Ajusta la ruta si es necesario
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {BehaviorSubject, Observable, throwError} from 'rxjs';
+import {catchError, tap} from 'rxjs/operators';
+import {Product} from '../../../shared/models/product.model';
+import {environment} from '../../../../environments/environment'; // Importar environment
 
 @Injectable({
-  providedIn: 'root' // Servicio disponible en toda la aplicación
+  providedIn: 'root'
 })
 export class ProductService {
-  // Usaremos un BehaviorSubject para simular una base de datos en memoria y que los cambios se reflejen
+  private apiUrl = `${environment.apiUrl}/products`; // URL base para productos
+
+  // BehaviorSubject para mantener la lista de productos actualizada en el frontend
   private productsSubject = new BehaviorSubject<Product[]>([]);
-  products$: Observable<Product[]> = this.productsSubject.asObservable();
+  public products$: Observable<Product[]> = this.productsSubject.asObservable();
 
-  private _products: Product[] = [
-    {
-      id: this.generateId(),
-      name: 'Laptop Pro X',
-      description: 'Potente laptop para profesionales',
-      price: 1200,
-      stock: 15,
-      imageUrl: 'https://via.placeholder.com/150/0000FF/808080?Text=Laptop'
-    },
-    {
-      id: this.generateId(),
-      name: 'Smartphone Z',
-      description: 'Última generación de smartphone',
-      price: 800,
-      stock: 25,
-      imageUrl: 'https://via.placeholder.com/150/FF0000/FFFFFF?Text=Smartphone'
-    },
-    {
-      id: this.generateId(),
-      name: 'Auriculares BT',
-      description: 'Sonido inmersivo y sin cables',
-      price: 150,
-      stock: 50,
-      imageUrl: 'https://via.placeholder.com/150/008000/FFFFFF?Text=Auriculares'
-    },
-  ];
-
-  constructor() {
-    this.productsSubject.next([...this._products]); // Emitir la lista inicial
+  constructor(private http: HttpClient) {
+    this.loadInitialProducts(); // Cargar productos al iniciar el servicio
   }
 
-  private generateId(): string {
-    return Math.random().toString(36).substring(2, 15); // Simple ID generator
+  private loadInitialProducts(): void {
+    this.http.get<Product[]>(this.apiUrl).pipe(
+      tap(products => this.productsSubject.next(products)),
+      catchError(this.handleError)
+    ).subscribe({
+      error: err => console.error('Error cargando productos iniciales:', err)
+      // No necesitas hacer nada en next aquí porque el tap ya actualizó el subject
+    });
+  }
+
+  // Opcional: método para recargar explícitamente si es necesario desde algún componente
+  public refreshProducts(): Observable<Product[]> {
+    return this.http.get<Product[]>(this.apiUrl).pipe(
+      tap(products => {
+        this.productsSubject.next(products);
+      }),
+      catchError(this.handleError)
+    );
   }
 
   getProducts(): Observable<Product[]> {
+    // Devuelve el observable del BehaviorSubject para que los componentes se suscriban
+    // y reciban actualizaciones automáticas.
+    // La carga inicial y las actualizaciones (add, update, delete) modificarán el BehaviorSubject.
     return this.products$;
   }
 
-  getProductById(id: string | number): Observable<Product | undefined> {
-    return this.products$.pipe(
-      map(products => products.find(p => p.id === id))
+  getProductById(id: number | string): Observable<Product | undefined> {
+    // El backend espera un Long, así que el ID debería ser numérico
+    return this.http.get<Product>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError)
     );
   }
 
   addProduct(product: Omit<Product, 'id'>): Observable<Product> {
-    const newProduct: Product = {...product, id: this.generateId()};
-    this._products = [...this._products, newProduct];
-    this.productsSubject.next([...this._products]);
-    return of(newProduct);
+    return this.http.post<Product>(this.apiUrl, product).pipe(
+      tap(newProduct => {
+        // Actualizar la lista localmente después de una creación exitosa
+        const currentProducts = this.productsSubject.value;
+        this.productsSubject.next([...currentProducts, newProduct]);
+      }),
+      catchError(this.handleError)
+    );
   }
 
   updateProduct(updatedProduct: Product): Observable<Product> {
-    const index = this._products.findIndex(p => p.id === updatedProduct.id);
-    if (index > -1) {
-      this._products[index] = updatedProduct;
-      this.productsSubject.next([...this._products]);
-      return of(updatedProduct);
+    // Asegurarse que el ID es parte de la URL y el cuerpo
+    if (updatedProduct.id === undefined || updatedProduct.id === null) {
+      return throwError(() => new Error('El ID del producto es necesario para actualizar.'));
     }
-    return throwError(() => new Error('Producto no encontrado para actualizar'));
+    return this.http.put<Product>(`${this.apiUrl}/${updatedProduct.id}`, updatedProduct).pipe(
+      tap(returnedProduct => {
+        // Actualizar la lista localmente
+        const currentProducts = this.productsSubject.value;
+        const index = currentProducts.findIndex(p => p.id === returnedProduct.id);
+        if (index > -1) {
+          currentProducts[index] = returnedProduct;
+          this.productsSubject.next([...currentProducts]);
+        }
+      }),
+      catchError(this.handleError)
+    );
   }
 
-  deleteProduct(id: string | number): Observable<boolean> {
-    const initialLength = this._products.length;
-    this._products = this._products.filter(p => p.id !== id);
-    if (this._products.length < initialLength) {
-      this.productsSubject.next([...this._products]);
-      return of(true);
+  deleteProduct(id: number | string): Observable<void> { // El backend devuelve 204 No Content (void)
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+      tap(() => {
+        // Actualizar la lista localmente
+        const currentProducts = this.productsSubject.value;
+        this.productsSubject.next(currentProducts.filter(p => p.id !== id));
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(error: HttpErrorResponse) {
+    console.error('API Error:', error);
+    let errorMessage = 'Ocurrió un error desconocido.';
+    if (error.error instanceof ErrorEvent) {
+      // Error del lado del cliente o de red
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      // El backend devolvió un código de error
+      // El cuerpo del error puede contener pistas sobre qué salió mal
+      if (error.status === 0) {
+        errorMessage = 'No se pudo conectar con el servidor. Verifique su conexión o el estado del backend.';
+      } else if (error.error && typeof error.error === 'string') {
+        errorMessage = `Error ${error.status}: ${error.error}`;
+      } else if (error.error && error.error.message) {
+        errorMessage = `Error ${error.status}: ${error.error.message}`;
+      } else {
+        errorMessage = `Error del servidor: ${error.status}, ${error.message}`;
+      }
     }
-    return of(false); // O throwError si prefieres
+    return throwError(() => new Error(errorMessage));
   }
 }

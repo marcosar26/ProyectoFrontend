@@ -59,9 +59,20 @@ export class UserManagementComponent implements OnInit, OnDestroy {
     }
 
     loadUsers(): void {
-        // El observable users$ del servicio ya emite la lista,
-        // pero si necesitaras una carga explícita, llamarías a un método del servicio aquí.
-        // Por ahora, la lista se carga al iniciar el servicio.
+        this.isLoading = true; // Mostrar indicador de carga
+        this.userService.getUsers()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: () => {
+                    this.isLoading = false;
+                    // La lista se actualiza a través del BehaviorSubject en el servicio
+                },
+                error: (err) => {
+                    this.isLoading = false;
+                    this.errorMessage = err.message || 'Error al cargar usuarios.';
+                    console.error(err);
+                }
+            });
     }
 
     passwordConfirming(control: AbstractControl): ValidationErrors | null {
@@ -177,16 +188,11 @@ export class UserManagementComponent implements OnInit, OnDestroy {
         if (confirm(`¿Estás seguro de que quieres eliminar al usuario "${username}"? Esta acción no se puede deshacer.`)) {
             this.isLoading = true;
             this.userService.deleteUser(userId).pipe(takeUntil(this.destroy$)).subscribe({
-                next: (success) => {
+                next: () => {
                     this.isLoading = false;
-                    if (success) {
-                        this.successMessage = `Usuario "${username}" eliminado exitosamente.`;
-                        this.loadUsers(); // Recargar lista
-                        if (this.currentUserId === userId) { // Si se elimina el usuario que se estaba editando
-                            this.cancelAndCloseForm();
-                        }
-                    } else {
-                        this.errorMessage = `No se pudo eliminar al usuario "${username}".`;
+                    this.successMessage = `Usuario "${username}" eliminado exitosamente.`;
+                    if (this.currentUserId === userId) {
+                        this.cancelAndCloseForm();
                     }
                 },
                 error: (err) => {

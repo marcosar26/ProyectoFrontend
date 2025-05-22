@@ -91,14 +91,10 @@ export class StockManagementComponent implements OnInit, OnDestroy {
       this.productService.deleteProduct(id)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (success) => {
-            if (success) {
-              console.log('Producto eliminado');
-              if (this.currentProductId === id) { // Si se elimina el producto que se estaba editando
-                this.cancelAndCloseForm();
-              }
-            } else {
-              console.error('Error al eliminar producto: El servicio indicó fallo.');
+          next: () => {
+            console.log('Producto eliminado');
+            if (this.currentProductId === id) { // Si se elimina el producto que se estaba editando
+              this.cancelAndCloseForm();
             }
           },
           error: (err) => console.error('Error en la suscripción de eliminación:', err)
