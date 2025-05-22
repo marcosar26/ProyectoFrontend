@@ -5,16 +5,15 @@ import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/
 import {Observable, Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 
-import {Product} from '../../../shared/models/product.model'; // Ajusta la ruta
-import {ProductService} from '../services/product.service'; // Ajusta la ruta
+import {Product} from '../../../shared/models/product.model';
+import {User} from '../../../shared/models/user.model'; // Importar User
+import {ProductService} from '../services/product.service';
+import {AuthService} from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-stock-management',
   standalone: true,
-  imports: [
-    CommonModule, // Necesario para *ngFor, *ngIf, etc.
-    ReactiveFormsModule // Necesario para Reactive Forms
-  ],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './stock-management.component.html',
   styleUrls: ['./stock-management.component.css']
 })
@@ -25,25 +24,33 @@ export class StockManagementComponent implements OnInit, OnDestroy {
   currentProductId: string | number | null = null;
   showForm = false;
 
+  userRole: User['role'] | null; // Usar User['role']
+  canPerformWriteActions = false;
+
   private destroy$ = new Subject<void>();
 
   constructor(
     private productService: ProductService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private authService: AuthService
   ) {
+    this.userRole = this.authService.userRole;
+    // El método hasRole ya está adaptado en AuthService
+    this.canPerformWriteActions = this.authService.hasRole('admin');
+
     this.products$ = this.productService.getProducts();
 
     this.productForm = this.fb.group({
-      name: ['', Validators.required],
-      description: [''],
-      price: [null, [Validators.required, Validators.min(0.01)]],
-      stock: [null, [Validators.required, Validators.min(0)]],
-      imageUrl: ['']
+      name: [{value: '', disabled: !this.canPerformWriteActions}, Validators.required],
+      description: [{value: '', disabled: !this.canPerformWriteActions}],
+      price: [{value: null, disabled: !this.canPerformWriteActions}, [Validators.required, Validators.min(0.01)]],
+      stock: [{value: null, disabled: !this.canPerformWriteActions}, [Validators.required, Validators.min(0)]],
+      imageUrl: [{value: '', disabled: !this.canPerformWriteActions}]
     });
   }
 
   ngOnInit(): void {
-    // Podrías cargar productos aquí si el servicio no lo hace al inicio
+    // Lógica de OnInit si es necesaria
   }
 
   ngOnDestroy(): void {
@@ -52,20 +59,21 @@ export class StockManagementComponent implements OnInit, OnDestroy {
   }
 
   toggleForm(product?: Product): void {
+    if (!this.canPerformWriteActions && (product || !this.showForm)) {
+      return;
+    }
     this.showForm = !this.showForm;
-    if (this.showForm && product) {
+
+    if (this.showForm && product && this.canPerformWriteActions) {
       this.editProduct(product);
     } else if (!this.showForm) {
-      this.cancelEdit(); // Resetea el formulario si se oculta
+      this.cancelEdit();
     }
   }
 
-  loadProducts(): void {
-    // Ya se cargan a través del BehaviorSubject en el servicio,
-    // pero si necesitaras un refresh manual, podrías llamar a un método en el servicio.
-  }
-
   editProduct(product: Product): void {
+    if (!this.canPerformWriteActions) return;
+
     this.isEditing = true;
     this.showForm = true;
     this.currentProductId = product.id;
@@ -73,6 +81,8 @@ export class StockManagementComponent implements OnInit, OnDestroy {
   }
 
   deleteProduct(id: string | number): void {
+    if (!this.canPerformWriteActions) return;
+
     if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
       this.productService.deleteProduct(id)
         .pipe(takeUntil(this.destroy$))
@@ -80,7 +90,7 @@ export class StockManagementComponent implements OnInit, OnDestroy {
           next: (success) => {
             if (success) {
               console.log('Producto eliminado');
-              if (this.currentProductId === id) { // Si el producto eliminado era el que se estaba editando
+              if (this.currentProductId === id) {
                 this.cancelEdit();
               }
             } else {
@@ -93,15 +103,16 @@ export class StockManagementComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
+    if (!this.canPerformWriteActions) return;
+
     if (this.productForm.invalid) {
-      this.productForm.markAllAsTouched(); // Marca todos los campos como tocados para mostrar errores
+      this.productForm.markAllAsTouched();
       return;
     }
 
     const productData = this.productForm.value;
 
     if (this.isEditing && this.currentProductId !== null) {
-      // Actualizar producto
       this.productService.updateProduct({...productData, id: this.currentProductId})
         .pipe(takeUntil(this.destroy$))
         .subscribe({
@@ -112,7 +123,6 @@ export class StockManagementComponent implements OnInit, OnDestroy {
           error: (err) => console.error('Error al actualizar producto:', err)
         });
     } else {
-      // Crear nuevo producto
       this.productService.addProduct(productData)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
@@ -132,7 +142,6 @@ export class StockManagementComponent implements OnInit, OnDestroy {
     this.productForm.reset();
   }
 
-  // Helpers para acceder fácilmente a los controles del formulario en la plantilla
   get name() {
     return this.productForm.get('name');
   }

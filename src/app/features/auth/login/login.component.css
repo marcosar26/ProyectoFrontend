@@ -1,0 +1,129 @@
+/* src/app/features/auth/login/login.component.css */
+.login-page-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #e9ecef; /* Un fondo suave para la página de login */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.login-container { /* Contenedor para centrar la tarjeta */
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-card {
+  background-color: #fff;
+  padding: 35px 40px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.login-card h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #343a40;
+  font-size: 1.9em;
+  font-weight: 600;
+}
+
+.login-card p {
+  margin-bottom: 30px;
+  color: #6c757d;
+  font-size: 1em;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.form-control { /* Clase genérica para inputs */
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ced4da;
+  border-radius: 5px;
+  box-sizing: border-box;
+  font-size: 1em;
+  transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+.form-control:focus {
+  border-color: #80bdff;
+  outline: 0;
+  box-shadow: 0 0 0 .2rem rgba(0,123,255,.25);
+}
+
+.form-control.is-invalid {
+  border-color: #dc3545;
+}
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 .2rem rgba(220,53,69,.25);
+}
+
+.invalid-feedback {
+  color: #dc3545;
+  font-size: 0.875em; /* Bootstrap default */
+  margin-top: .25rem;
+  display: block;
+}
+
+.btn-primary.btn-block {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.1em;
+  font-weight: 500;
+  background-color: #007bff;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.btn-primary.btn-block:hover {
+  background-color: #0056b3;
+}
+.btn-primary.btn-block:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  padding: .75rem 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: .25rem;
+  font-size: 0.9em;
+}
+.login-info {
+  margin-top: 25px;
+  font-size: 0.85em;
+  color: #6c757d;
+  background-color: #f8f9fa;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: 1px solid #dee2e6;
+  text-align: left;
+}
+.login-info p {
+  margin-bottom: 5px;
+}
+.login-info code {
+  background-color: #e9ecef;
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: #c7254e; /* Color de Bootstrap para code */
+}
