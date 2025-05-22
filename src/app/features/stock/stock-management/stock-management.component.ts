@@ -35,11 +35,10 @@ export class StockManagementComponent implements OnInit, OnDestroy {
     private authService: AuthService
   ) {
     this.userRole = this.authService.userRole;
-    this.canPerformWriteActions = this.authService.hasRole('admin');
+    this.canPerformWriteActions = this.authService.hasRole(['admin', 'manager']); // <--- ACTUALIZADO
 
     this.products$ = this.productService.getProducts();
 
-    // Los campos del formulario se deshabilitan si el usuario no es admin
     this.productForm = this.fb.group({
       name: [{value: '', disabled: !this.canPerformWriteActions}, Validators.required],
       description: [{value: '', disabled: !this.canPerformWriteActions}],

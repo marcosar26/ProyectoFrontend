@@ -1,0 +1,5 @@
+/* Puedes añadir estilos específicos aquí si es necesario,
+   pero la mayoría deberían venir de Bootstrap. */
+.text-danger { /* Para los asteriscos de campos obligatorios */
+  color: var(--bs-danger) !important;
+}

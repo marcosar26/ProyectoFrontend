@@ -1,0 +1,158 @@
+<div class="container mt-4">
+  <!-- Encabezado y Botón de Crear Usuario -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Gestión de Usuarios</h2>
+    <button *ngIf="!showForm" (click)="openNewUserForm()" class="btn btn-primary">
+      <i class="fas fa-user-plus me-1"></i> Crear Usuario
+    </button>
+    <button *ngIf="showForm" (click)="cancelAndCloseForm()" class="btn btn-outline-secondary">
+      {{ isEditing ? 'Cancelar Edición' : 'Cancelar Creación' }}
+    </button>
+  </div>
+
+  <!-- Mensajes de Éxito/Error -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = null" aria-label="Close"></button>
+  </div>
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = null" aria-label="Close"></button>
+  </div>
+  <div *ngIf="isLoading" class="alert alert-info">
+    <div class="spinner-border spinner-border-sm me-2" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    Procesando...
+  </div>
+
+
+  <!-- Formulario de Usuario -->
+  <div *ngIf="showForm" class="card mb-4 shadow-sm">
+    <div class="card-body">
+      <h3 class="card-title mb-3">{{ isEditing ? 'Editar Usuario' : 'Crear Nuevo Usuario' }}</h3>
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="username" class="form-label">Nombre de Usuario <span class="text-danger">*</span></label>
+            <input type="text" id="username" formControlName="username" class="form-control"
+                   [ngClass]="{ 'is-invalid': usernameCtrl?.invalid && (usernameCtrl?.dirty || usernameCtrl?.touched) }">
+            <div *ngIf="usernameCtrl?.invalid && (usernameCtrl?.dirty || usernameCtrl?.touched)"
+                 class="invalid-feedback">
+              <div *ngIf="usernameCtrl?.errors?.['required']">Nombre de usuario es obligatorio.</div>
+              <div *ngIf="usernameCtrl?.errors?.['minlength']">Mínimo 3 caracteres.</div>
+              <div *ngIf="usernameCtrl?.errors?.['maxlength']">Máximo 50 caracteres.</div>
+              <div *ngIf="usernameCtrl?.errors?.['pattern']">Solo letras, números y guion bajo.</div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="name" class="form-label">Nombre Completo (Opcional)</label>
+            <input type="text" id="name" formControlName="name" class="form-control"
+                   [ngClass]="{ 'is-invalid': nameCtrl?.invalid && (nameCtrl?.dirty || nameCtrl?.touched) }">
+            <div *ngIf="nameCtrl?.invalid && (nameCtrl?.dirty || nameCtrl?.touched)" class="invalid-feedback">
+              <div *ngIf="nameCtrl?.errors?.['maxlength']">Máximo 100 caracteres.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="role" class="form-label">Rol <span class="text-danger">*</span></label>
+            <select id="role" formControlName="role" class="form-select"
+                    [ngClass]="{ 'is-invalid': roleCtrl?.invalid && (roleCtrl?.dirty || roleCtrl?.touched) }">
+              <option *ngFor="let roleValue of roles" [value]="roleValue">{{ roleValue | titlecase }}</option>
+            </select>
+            <div *ngIf="roleCtrl?.invalid && (roleCtrl?.dirty || roleCtrl?.touched)" class="invalid-feedback">
+              <div *ngIf="roleCtrl?.errors?.['required']">El rol es obligatorio.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="passwordInput" class="form-label">
+              Contraseña <span *ngIf="!isEditing" class="text-danger">*</span>
+              <small *ngIf="isEditing" class="text-muted">(Dejar en blanco para no cambiar)</small>
+            </label>
+            <input type="password" id="passwordInput" formControlName="passwordInput" class="form-control"
+                   [ngClass]="{ 'is-invalid': passwordInputCtrl?.invalid && (passwordInputCtrl?.dirty || passwordInputCtrl?.touched) }">
+            <div *ngIf="passwordInputCtrl?.invalid && (passwordInputCtrl?.dirty || passwordInputCtrl?.touched)"
+                 class="invalid-feedback">
+              <div *ngIf="passwordInputCtrl?.errors?.['required']">Contraseña es obligatoria.</div>
+              <div *ngIf="passwordInputCtrl?.errors?.['minlength']">Mínimo 6 caracteres.</div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="confirmPassword" class="form-label">
+              Confirmar Contraseña <span *ngIf="passwordInputCtrl?.value" class="text-danger">*</span>
+            </label>
+            <input type="password" id="confirmPassword" formControlName="confirmPassword" class="form-control"
+                   [ngClass]="{ 'is-invalid': (confirmPasswordCtrl?.invalid || userForm.errors?.['mismatch']) && (confirmPasswordCtrl?.dirty || confirmPasswordCtrl?.touched || passwordInputCtrl?.dirty) }">
+            <div
+              *ngIf="(confirmPasswordCtrl?.invalid || userForm.errors?.['mismatch']) && (confirmPasswordCtrl?.dirty || confirmPasswordCtrl?.touched || passwordInputCtrl?.dirty)"
+              class="invalid-feedback">
+              <div *ngIf="confirmPasswordCtrl?.errors?.['required'] && passwordInputCtrl?.value">Confirmación es
+                obligatoria.
+              </div>
+              <div *ngIf="userForm.errors?.['mismatch'] && !confirmPasswordCtrl?.errors?.['required']">Las contraseñas
+                no coinciden.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-3">
+          <button type="button" (click)="cancelAndCloseForm()" class="btn btn-light border me-2">Cancelar</button>
+          <button type="submit" class="btn btn-success" [disabled]="userForm.invalid || isLoading">
+            <i class="fas fa-save me-1"></i> {{ isEditing ? 'Actualizar Usuario' : 'Guardar Usuario' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lista de Usuarios -->
+  <h3 class="mb-3">Listado de Usuarios</h3>
+  <ng-container *ngIf="(users$ | async) as userList; else loadingUsersTemplate">
+    <div *ngIf="userList.length > 0; else noUsersTemplate" class="table-responsive shadow-sm rounded">
+      <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+        <tr>
+          <th scope="col">Nombre Completo</th>
+          <th scope="col">Nombre de Usuario</th>
+          <th scope="col">Rol</th>
+          <th scope="col" class="text-center" style="width: 120px;">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let user of userList">
+          <td>{{ user.name || '-' }}</td>
+          <td class="fw-bold">{{ user.username }}</td>
+          <td><span class="badge"
+                    [ngClass]="{'bg-primary': user.role === 'admin', 'bg-info text-dark': user.role === 'manager', 'bg-secondary': user.role === 'user'}">{{ user.role | titlecase }}</span>
+          </td>
+          <td class="text-center">
+            <button (click)="openEditUserForm(user)" class="btn btn-warning btn-sm me-2" title="Editar Usuario">
+              <i class="fas fa-user-edit"></i>
+            </button>
+            <button (click)="deleteUser(user.id, user.username)" class="btn btn-danger btn-sm" title="Eliminar Usuario"
+                    [disabled]="user.id === loggedInUserId">
+              <i class="fas fa-user-times"></i>
+            </button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+  <ng-template #loadingUsersTemplate>
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div>
+      <p class="mt-2">Cargando usuarios...</p>
+    </div>
+  </ng-template>
+  <ng-template #noUsersTemplate>
+    <div class="alert alert-info">No hay usuarios registrados.</div>
+  </ng-template>
+</div>

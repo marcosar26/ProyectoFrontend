@@ -7,13 +7,16 @@
     <ul>
       <li><a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">Inicio</a></li>
       <li><a routerLink="/stock" routerLinkActive="active-link">Gestión de Stock</a></li>
-      <!-- Otros enlaces globales aquí -->
+      <!-- NUEVO ENLACE - Mostrar solo si es admin -->
+      <li *ngIf="authService.hasRole('admin')">
+        <a routerLink="/admin/users" routerLinkActive="active-link">Gestión de Usuarios</a>
+      </li>
     </ul>
   </nav>
 </header>
 
 <main class="app-content">
-  <router-outlet></router-outlet> <!-- Aquí se cargarán HomeComponent o StockManagementComponent -->
+  <router-outlet></router-outlet>
 </main>
 
 <footer class="app-footer">

@@ -1,7 +1,7 @@
 export interface User {
-  id: string | number; // Mantengo string | number por si usas UUID o numérico
+  id: string | number;
   username: string;
-  password?: string; // Sigue siendo opcional en el modelo para el frontend
-  role: 'admin' | 'user'; // Rol integrado directamente
+  password?: string;
+  role: 'admin' | 'manager' | 'user'; // <--- AÑADIDO 'manager'
   name?: string;
 }
