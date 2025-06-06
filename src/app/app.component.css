@@ -1,0 +1,87 @@
+/* src/app/app.component.css */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Ocupa toda la altura de la ventana */
+}
+
+.app-header {
+  background-color: #343a40; /* Un gris oscuro */
+  color: white;
+  padding: 0 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky; /* Para que la barra de navegación se quede fija arriba si haces scroll */
+  top: 0;
+  z-index: 1000;
+}
+
+.main-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px; /* Limita el ancho del contenido de la nav */
+  margin: 0 auto;
+  height: 60px;
+}
+
+.logo a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.main-nav ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+}
+
+.main-nav ul li {
+  margin-left: 20px;
+}
+
+.main-nav ul li a {
+  color: #f8f9fa; /* Un blanco un poco menos brillante */
+  text-decoration: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.main-nav ul li a:hover,
+.main-nav ul li a.active-link {
+  background-color: #495057; /* Un gris un poco más claro para hover/active */
+  color: white;
+}
+
+.app-content {
+  flex-grow: 1; /* Hace que el contenido principal ocupe el espacio disponible */
+  padding: 0; /* El padding se gestionará en los componentes hijos o en styles.css global */
+  /* max-width: 1200px; /* Opcional: si quieres centrar y limitar el ancho del contenido principal */
+  /* margin: 0 auto; /* Si usas max-width */
+}
+
+.app-footer {
+  background-color: #f8f9fa; /* Un gris muy claro */
+  color: #6c757d; /* Un gris medio */
+  text-align: center;
+  padding: 20px;
+  border-top: 1px solid #dee2e6; /* Una línea sutil de separación */
+  margin-top: auto; /* Empuja el footer hacia abajo */
+}
+
+.main-nav ul li a.logout-link {
+  color: #ffc107; /* Un color ámbar/amarillo para destacar */
+  /* O puedes hacerlo parecer más un botón si quieres */
+  /* background-color: #dc3545; */
+  /* color: white; */
+  /* padding: 8px 12px; */
+  /* border-radius: 4px; */
+}
+
+.main-nav ul li a.logout-link:hover {
+  color: #ffca2c; /* Un poco más brillante al pasar el mouse */
+  /* background-color: #c82333; */ /* Si es un botón */
+}

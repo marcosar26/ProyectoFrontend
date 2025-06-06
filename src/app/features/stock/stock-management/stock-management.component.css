@@ -1,0 +1,72 @@
+/* src/app/features/stock/stock-management/stock-management.component.css */
+.stock-container {
+  /* El max-width ya lo maneja la clase .container de Bootstrap si la usas en el HTML */
+  /* padding: 20px; ya lo maneja la clase .container de Bootstrap si la usas en el HTML */
+}
+
+.page-header h2 {
+  font-weight: 300; /* Un título un poco más ligero */
+}
+
+.product-image-thumbnail {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+}
+
+/*
+Las siguientes reglas pueden ser eliminadas o ajustadas,
+Bootstrap debería manejarlas o las hemos especificado en el HTML.
+*/
+
+/* .product-form { ... }  Eliminar si usas card de Bootstrap */
+/* .product-image { ... } Reemplazado por product-image-thumbnail y img-thumbnail */
+
+/* .table th, .table td {
+  vertical-align: middle; /* Bootstrap ya lo hace con table y align-middle en la tabla */
+/*}*/
+
+/* .btn-primary, .btn-primary:hover ... Eliminar, Bootstrap maneja esto. */
+
+/*
+  Si los iconos dentro de btn-warning (amarillo) no se ven bien,
+  Bootstrap usualmente usa texto oscuro. Si tu tema lo cambia, podrías necesitar:
+*/
+/*
+.btn-warning .fas,
+.btn-warning .far,
+.btn-warning .fab {
+  color: #212529;
+}
+*/
+
+/*
+  .btn-danger ya debería tener texto blanco por Bootstrap.
+  .btn-danger { color: #fff; } Eliminar si Bootstrap lo hace.
+*/
+
+/* Los márgenes entre botones de acción en la tabla se manejan con .me-2 en el HTML */
+/* .table .btn { margin-right: 5px; } */
+/* .table .btn:last-child { margin-right: 0; } */
+
+
+/* Estilos para feedback de validación (Bootstrap ya los tiene, pero asegúrate que funcionen) */
+.invalid-feedback.d-block { /* Específico para input-group */
+  display: block !important; /* Asegurar que se muestre */
+}
+
+/* Para los botones de acción si necesitan un ajuste fino con btn-sm */
+.action-buttons .btn-sm {
+  /* Bootstrap btn-sm: padding: 0.25rem 0.5rem; font-size: .875rem; */
+  /* Si el icono sigue cortado, podemos reducir el padding o asegurar line-height */
+  padding: 0.2rem 0.45rem; /* Un poco menos padding que el btn-sm default */
+  line-height: 1.2; /* Ajustar para centrar el icono si es necesario */
+}
+
+.action-buttons .btn-sm .fas {
+  font-size: 0.8em; /* Hacer el icono un poco más pequeño si es btn-sm */
+  vertical-align: -0.05em; /* Pequeño ajuste vertical si es necesario */
+}
+
+/* :root { ... } Estas son variables de Bootstrap, no necesitas redefinirlas aquí
+   a menos que estés creando un tema personalizado completo. Eliminar. */

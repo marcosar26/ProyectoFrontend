@@ -1,0 +1,77 @@
+.dashboard-container {
+  padding-bottom: 2rem;
+}
+
+/* Estilos para KPIs */
+.card-text.display-4 {
+  font-size: 3rem !important; /* Un poco más grande para KPIs */
+}
+
+.card-text.display-6 {
+  font-size: 2rem !important;
+}
+
+.card .card-title {
+  font-weight: 500;
+}
+
+
+/* Estilos para los contenedores de gráficos */
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra el wrapper del gráfico si es más pequeño */
+  justify-content: center;
+  min-height: 300px; /* Altura mínima para el cuerpo de la tarjeta del gráfico */
+  height: 100%; /* Intentar que ocupe la altura disponible del card-body */
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.chart-wrapper {
+  width: 100%;
+  height: 300px; /* Altura fija para el gráfico, ngx-charts tomará esto */
+  /* O puedes usar porcentajes si el padre tiene altura definida */
+  max-width: 100%; /* Asegurar que no se desborde */
+}
+
+/* Para el mensaje de "No hay datos" dentro de las cards */
+.card-body .text-muted {
+  font-size: 0.9rem;
+}
+
+.card-body .d-flex.h-100 { /* Asegura que el mensaje de 'no datos' se centre verticalmente */
+  min-height: inherit; /* Hereda la altura mínima del chart-container */
+}
+
+/* ... (otros estilos) ... */
+
+.chart-wrapper {
+  width: 100%;
+  /* La altura será más flexible si la leyenda está a la derecha,
+     el gráfico se ajustará al ancho disponible y su aspect ratio. */
+  /* height: 300px;  Podemos quitar la altura fija aquí temporalmente */
+  max-width: 100%;
+  display: flex; /* Para centrar el gráfico si es más pequeño que el wrapper */
+  justify-content: center;
+  align-items: center;
+}
+
+/* Específico para el pie chart si es necesario */
+.pie-chart-wrapper {
+  min-height: 350px; /* Darle un poco más de altura si la leyenda va abajo */
+  /* O ajustar según sea necesario si la leyenda va a la derecha */
+}
+
+
+/* Estilos para los contenedores de gráficos */
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* Alinear arriba para que la leyenda tenga espacio abajo si se coloca ahí */
+  min-height: 380px; /* Aumentar la altura mínima para dar espacio a la leyenda si va abajo */
+  height: 100%;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}

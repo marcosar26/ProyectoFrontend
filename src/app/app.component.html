@@ -1,0 +1,40 @@
+<!-- src/app/app.component.html -->
+<header class="app-header">
+  <nav class="main-nav">
+    <div class="logo">
+      <a routerLink="/">MiGestorStock</a>
+    </div>
+    <ul>
+      <!-- Mostrar estos enlaces siempre o según isAuthenticated$ -->
+      <ng-container *ngIf="authService.isAuthenticated$ | async">
+        <li><a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}">Inicio</a></li>
+        <li *ngIf="authService.hasRole(['admin', 'manager'])">
+          <a routerLink="/dashboard" routerLinkActive="active-link">Dashboard</a>
+        </li>
+        <li><a routerLink="/stock" routerLinkActive="active-link">Gestión de Stock</a></li>
+        <li *ngIf="authService.hasRole(['admin', 'manager'])">
+          <a routerLink="/stock-movements" routerLinkActive="active-link">Historial de Stock</a>
+        </li>
+        <li *ngIf="authService.hasRole('admin')">
+          <a routerLink="/admin/users" routerLinkActive="active-link">Gestión de Usuarios</a>
+        </li>
+        <li>
+          <!-- Botón/Enlace para Cerrar Sesión -->
+          <a href="#" (click)="logout($event)" class="logout-link">Cerrar Sesión</a>
+        </li>
+      </ng-container>
+      <!-- Mostrar enlace de Login si NO está autenticado -->
+      <ng-container *ngIf="!(authService.isAuthenticated$ | async)">
+        <li><a routerLink="/login" routerLinkActive="active-link">Iniciar Sesión</a></li>
+      </ng-container>
+    </ul>
+  </nav>
+</header>
+
+<main class="app-content">
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="app-footer">
+  <p>© {{ currentYear }} Mi Aplicación de Gestión de Stock. Todos los derechos reservados.</p>
+</footer>
